@@ -1,0 +1,1053 @@
+#!/usr/bin/env python3
+"""
+build_site.py
+
+Генерация sanitized статического дашборда для Netlify Drop.
+
+Входы:
+  config/deploy_manifest.json
+  out/normalized.json
+  out/reconciliation_report.json (опционально)
+  data/curated/from_AMP.csv
+
+Выходы:
+  site/index.html
+  site/netlify.toml
+
+Security/privacy:
+  - Публичный деплой блокируется, если манифест содержит real/personal/special category data.
+  - SampleID маскируется через sample_label.
+  - Гаплогруппа скрывается, если show_haplogroup=false.
+  - HTML генерируется без JavaScript и внешних зависимостей.
+"""
+
+import csv
+import html
+import json
+import os
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+
+HERE = Path(__file__).resolve()
+
+
+def detect_root() -> Path:
+    """
+    Автоматически определяет корень проекта.
+
+    Поддерживает:
+      Project/
+      ├── scripts/
+      │   └── build_site.py
+      ├── config/
+      ├── data/
+      └── out/
+
+    и плоскую структуру:
+      Project/
+      ├── build_site.py
+      ├── config/
+      ├── data/
+      └── out/
+    """
+
+    if HERE.parent.name == "scripts":
+        candidate = HERE.parents[1]
+        if (candidate / "config").exists() or (candidate / "data").exists():
+            return candidate
+
+    if (HERE.parent / "config").exists() or (HERE.parent / "data").exists():
+        return HERE.parent
+
+    cwd = Path.cwd()
+    if (cwd / "config").exists() or (cwd / "data").exists():
+        return cwd
+
+    return HERE.parent
+
+
+ROOT = detect_root()
+
+CONFIG = ROOT / "config" / "deploy_manifest.json"
+NORMALIZED = ROOT / "out" / "normalized.json"
+RECONCILIATION = ROOT / "out" / "reconciliation_report.json"
+AMP_CSV = ROOT / "data" / "curated" / "from_AMP.csv"
+
+SITE = ROOT / "site"
+INDEX_HTML = SITE / "index.html"
+NETLIFY_TOML = SITE / "netlify.toml"
+
+
+def esc(value):
+    return html.escape(str(value if value is not None else ""))
+
+
+def load_json(path: Path):
+    if not path.exists():
+        raise FileNotFoundError(f"Missing required file: {path}")
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def load_optional_json(path: Path):
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+
+def get_deploy_target(manifest):
+    return (
+        os.environ.get("DEPLOY_TARGET")
+        or manifest.get("default_target")
+        or "netlify-drop-demo"
+    )
+
+
+def privacy_gate(manifest):
+    """
+    Блокирует публичную сборку, если данные не разрешены к публикации.
+    """
+
+    errors = []
+    target = get_deploy_target(manifest)
+
+    classification = manifest.get("classification")
+
+    if not classification:
+        errors.append("BLOCKED: classification is missing in deploy_manifest.json.")
+
+    if classification == "real":
+        errors.append("BLOCKED: real data cannot be deployed to public Netlify Drop.")
+
+    if manifest.get("contains_personal_data") is True:
+        errors.append("BLOCKED: personal data cannot be deployed to public Netlify Drop.")
+
+    if manifest.get("contains_special_category_data") is True:
+        errors.append("BLOCKED: special category data cannot be deployed to public Netlify Drop.")
+
+    if manifest.get("contains_biometric_context") is True:
+        errors.append("BLOCKED: biometric context cannot be deployed to public Netlify Drop.")
+
+    if manifest.get("public_deploy_allowed") is False:
+        errors.append("BLOCKED: public_deploy_allowed=false in deploy_manifest.json.")
+
+    allowed_targets = manifest.get("allowed_targets") or []
+    if target not in allowed_targets:
+        errors.append(
+            f"BLOCKED: deploy target '{target}' is not listed in allowed_targets."
+        )
+
+    if classification in {"sanitized", "aggregated", "derived"}:
+        required_approvers = [
+            "data_approver",
+            "security_approver",
+            "legal_approver",
+            "approval_date",
+        ]
+        for field in required_approvers:
+            if not manifest.get(field):
+                errors.append(f"BLOCKED: missing approval field: {field}")
+
+    return errors
+
+
+def read_amp_rows():
+    if not AMP_CSV.exists():
+        raise FileNotFoundError(f"Missing curated file: {AMP_CSV}")
+
+    rows = []
+
+    with AMP_CSV.open("r", encoding="utf-8-sig", newline="") as f:
+        reader = csv.DictReader(f)
+
+        for raw_row in reader:
+            row = {}
+            for key, value in raw_row.items():
+                clean_key = (key or "").strip()
+                if isinstance(value, str):
+                    clean_value = value.strip()
+                else:
+                    clean_value = str(value).strip() if value is not None else ""
+                row[clean_key] = clean_value
+            rows.append(row)
+
+    return rows
+
+
+def get_field(row, *names):
+    for name in names:
+        value = row.get(name, "")
+        if value:
+            return value
+    return ""
+
+
+def priority_by_type(typ: str):
+    """
+    Условный визуальный приоритет на основе типа гена.
+    Не является клинической классификацией.
+    """
+
+    t = (typ or "").lower()
+
+    if "комплекс i" in t:
+        return "Высокий", "high"
+
+    if "рнк" in t or "комплекс iii" in t or "комплекс iv" in t:
+        return "Средний", "medium"
+
+    if "трнк" in t:
+        return "Низкий", "low"
+
+    if "контрольная" in t or "d-loop" in t or "d-петля" in t:
+        return "Минимальный", "minimal"
+
+    return "Не определён", "unknown"
+
+
+def write_netlify_toml():
+    NETLIFY_TOML.write_text(
+        """[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "no-referrer"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Content-Security-Policy = "default-src 'none'; style-src 'unsafe-inline'; img-src data:; font-src 'none'; connect-src 'none'; frame-ancestors 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
+""",
+        encoding="utf-8",
+    )
+
+
+def build_html(manifest, normalized, reconciliation, amp_rows):
+    target = get_deploy_target(manifest)
+
+    expected_count = manifest.get("expected_variant_count")
+    if expected_count is not None and len(amp_rows) != int(expected_count):
+        raise SystemExit(
+            f"BLOCKED: expected_variant_count={expected_count}, actual={len(amp_rows)}"
+        )
+
+    sample_label = manifest.get("sample_label", "DEMO-001")
+    show_hg = bool(manifest.get("show_haplogroup", False))
+
+    haplogroups = normalized.get("haplogroups", [])
+    haplogroup_text = ", ".join(haplogroups) if show_hg else "скрыто"
+
+    annotation_positions = normalized.get("annotation_positions", [])
+    align_positions = normalized.get("align_positions", [])
+    expected_amp_positions = normalized.get("expected_amp_positions", [])
+    private_positions = normalized.get("private_positions", [])
+    missing_positions = normalized.get("missing_positions", [])
+    qc_messages = normalized.get("qc_messages", [])
+
+    reconciliation = reconciliation or {}
+    recon_status = reconciliation.get("status", "NOT_RUN")
+    issues = reconciliation.get("issues", [])
+    warnings = reconciliation.get("warnings", [])
+
+    high_count = sum(
+        1 for row in amp_rows
+        if priority_by_type(get_field(row, "Тип гена"))[0] == "Высокий"
+    )
+
+    vus_count = sum(
+        1 for row in amp_rows
+        if get_field(row, "Класс (предварит.)").upper() == "VUS"
+    )
+
+    css = """
+:root {
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --text: #111827;
+  --muted: #667085;
+  --border: #e4e7ec;
+  --primary: #4f46e5;
+  --primary-2: #7c3aed;
+  --success: #059669;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --info: #0284c7;
+  --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --radius: 18px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.45;
+}
+
+a {
+  color: var(--primary);
+}
+
+.hero {
+  background:
+    radial-gradient(circle at top left, rgba(124, 58, 237, 0.35), transparent 35%),
+    radial-gradient(circle at top right, rgba(79, 70, 229, 0.30), transparent 30%),
+    linear-gradient(135deg, #0f172a, #1e1b4b, #312e81);
+  color: white;
+  padding: 34px 24px 42px;
+}
+
+.hero-inner,
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.hero h1 {
+  margin: 0 0 10px;
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+}
+
+.hero p {
+  margin: 0;
+  max-width: 980px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 15px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.chip {
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.banner {
+  background: linear-gradient(90deg, #fff7ed, #fffbeb);
+  border-bottom: 1px solid #fed7aa;
+  color: #7c2d12;
+  padding: 14px 24px;
+  font-weight: 650;
+}
+
+.banner-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.container {
+  padding: 24px;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.metric {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.metric::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: var(--primary);
+}
+
+.metric-indigo::before { background: var(--primary); }
+.metric-red::before { background: var(--danger); }
+.metric-amber::before { background: var(--warning); }
+.metric-green::before { background: var(--success); }
+.metric-blue::before { background: var(--info); }
+.metric-slate::before { background: #64748b; }
+
+.metric-value {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.metric-label {
+  margin-top: 4px;
+  font-weight: 700;
+  color: #344054;
+}
+
+.metric-note {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  margin-bottom: 22px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.panel h2 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+}
+
+.panel-tag {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.profile-item {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.profile-label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.profile-value {
+  display: block;
+  margin-top: 6px;
+  font-size: 16px;
+  font-weight: 750;
+  color: #101828;
+  word-break: break-word;
+}
+
+.qc-list,
+.issue-list,
+.warning-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.qc-item,
+.issue-item,
+.warning-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.qc-severity {
+  flex: 0 0 auto;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.qc-error .qc-severity {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.qc-warning .qc-severity,
+.warning-item {
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.qc-info .qc-severity {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.issue-item {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #7f1d1d;
+}
+
+.status-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.status-pass {
+  background: #ecfdf3;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.status-fail {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.status-neutral {
+  background: #f8fafc;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+}
+
+.variants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: 14px;
+}
+
+.variant-card {
+  background: linear-gradient(180deg, #ffffff, #fbfcfe);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.variant-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.12);
+}
+
+.variant-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.variant-pos {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.variant-gene {
+  font-size: 20px;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+  margin-top: 2px;
+}
+
+.variant-badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.pill {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 850;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.pill-high {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.pill-medium {
+  background: #fffbeb;
+  color: #92400e;
+  border-color: #fde68a;
+}
+
+.pill-low {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.pill-minimal {
+  background: #f1f5f9;
+  color: #334155;
+  border-color: #e2e8f0;
+}
+
+.pill-unknown {
+  background: #f8fafc;
+  color: #64748b;
+  border-color: #e2e8f0;
+}
+
+.pill-class {
+  background: #ede9fe;
+  color: #5b21b6;
+  border-color: #ddd6fe;
+}
+
+.variant-change {
+  margin-top: 12px;
+  display: inline-flex;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-weight: 850;
+  font-size: 14px;
+}
+
+.variant-meta {
+  margin: 14px 0 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.variant-meta > div {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  min-width: 0;
+}
+
+.variant-meta dt {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.variant-meta dd {
+  margin: 5px 0 0;
+  font-size: 13px;
+  font-weight: 650;
+  color: #101828;
+  word-break: break-word;
+}
+
+.variant-role {
+  margin: 14px 0 0;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #344054;
+  font-size: 13px;
+}
+
+.timeline {
+  margin: 0;
+  padding-left: 22px;
+  color: #344054;
+}
+
+.timeline li {
+  margin: 8px 0;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.footer {
+  padding: 18px 24px 34px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+code {
+  background: #eef2ff;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 0.92em;
+}
+
+@media (max-width: 720px) {
+  .hero {
+    padding: 24px 16px 30px;
+  }
+
+  .container {
+    padding: 16px;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
+  .variant-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .variant-head {
+    flex-direction: column;
+  }
+
+  .variant-badges {
+    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+"""
+
+    parts = []
+
+    parts.append("<!doctype html>")
+    parts.append('<html lang="ru">')
+    parts.append("<head>")
+    parts.append('<meta charset="utf-8">')
+    parts.append('<meta name="viewport" content="width=device-width, initial-scale=1">')
+    parts.append('<meta name="color-scheme" content="light">')
+    parts.append("<title>мтДНК × Психиатрия — Demo Dashboard</title>")
+    parts.append("<style>")
+    parts.append(css)
+    parts.append("</style>")
+    parts.append("</head>")
+    parts.append("<body>")
+
+    # Hero
+    parts.append('<header class="hero">')
+    parts.append('<div class="hero-inner">')
+    parts.append('<div class="eyebrow">mtDNA · Psychiatry · Research demo</div>')
+    parts.append("<h1>Дашборд предварительного анализа мтДНК</h1>")
+    parts.append(
+        "<p>Статический sanitized-дашборд, собранный локально из "
+        "<code>snps.annotations.txt</code>, <code>samples.qc.txt</code> и "
+        "<code>from_AMP.csv</code>. Предназначен для демонстрации pipeline, "
+        "а не для клинического использования.</p>"
+    )
+
+    parts.append('<div class="chips">')
+    parts.append(f'<span class="chip">dataset: {esc(manifest.get("dataset_id", "unknown"))}</span>')
+    parts.append(f'<span class="chip">version: {esc(manifest.get("version", "unknown"))}</span>')
+    parts.append(f'<span class="chip">classification: {esc(manifest.get("classification", "unknown"))}</span>')
+    parts.append(f'<span class="chip">target: {esc(target)}</span>')
+    parts.append(f'<span class="chip">sample: {esc(sample_label)}</span>')
+    parts.append("</div>")
+
+    parts.append("</div>")
+    parts.append("</header>")
+
+    # Banner
+    parts.append('<div class="banner">')
+    parts.append('<div class="banner-inner">')
+    parts.append(
+        "⚠️ Демо-режим. Используются только synthetic/sanitized/aggregated данные. "
+        "Результат не является медицинским заключением, диагнозом или рекомендацией по лечению."
+    )
+    parts.append("</div>")
+    parts.append("</div>")
+
+    parts.append('<main class="container">')
+
+    # Metrics
+    parts.append('<section class="metrics">')
+
+    metrics = [
+        ("Всего вариантов", len(amp_rows), "из from_AMP.csv", "indigo"),
+        ("Высокий приоритет", high_count, "условно: Комплекс I", "red"),
+        ("Класс VUS", vus_count, "предварительная классификация", "amber"),
+        ("ALIGN исключено", len(align_positions), "артефакты выравнивания", "slate"),
+        ("Warnings", len(warnings), "неблокирующие замечания", "blue"),
+        ("Issues", len(issues), "критические расхождения", "green" if not issues else "red"),
+    ]
+
+    for label, value, note, tone in metrics:
+        parts.append(f'<article class="metric metric-{tone}">')
+        parts.append(f'<div class="metric-value">{esc(value)}</div>')
+        parts.append(f'<div class="metric-label">{esc(label)}</div>')
+        parts.append(f'<div class="metric-note">{esc(note)}</div>')
+        parts.append("</article>")
+
+    parts.append("</section>")
+
+    # Profile panel
+    parts.append('<section class="panel">')
+    parts.append('<div class="panel-header"><h2>Профиль образца и QC</h2>')
+    parts.append('<span class="panel-tag">sanitized view</span></div>')
+
+    parts.append('<div class="profile-grid">')
+
+    profile_items = [
+        ("Sample label", sample_label),
+        ("Haplogroup", haplogroup_text),
+        ("Annotation positions", len(annotation_positions)),
+        ("ALIGN excluded", ", ".join(map(str, align_positions)) or "—"),
+        ("Expected AMP positions", len(expected_amp_positions)),
+        ("Global private detected", len(private_positions)),
+        ("Missing detected", len(missing_positions)),
+        ("Reconciliation status", recon_status),
+    ]
+
+    for label, value in profile_items:
+        parts.append('<div class="profile-item">')
+        parts.append(f'<span class="profile-label">{esc(label)}</span>')
+        parts.append(f'<span class="profile-value">{esc(value)}</span>')
+        parts.append("</div>")
+
+    parts.append("</div>")
+    parts.append("</section>")
+
+    # QC messages
+    parts.append('<section class="panel">')
+    parts.append('<div class="panel-header"><h2>QC-сообщения</h2>')
+    parts.append(f'<span class="panel-tag">{len(qc_messages)} items</span></div>')
+
+    if qc_messages:
+        parts.append('<ul class="qc-list">')
+        for item in qc_messages:
+            typ = (item.get("type") or "info").lower()
+            msg = item.get("message") or ""
+            css_class = "qc-error" if typ == "error" else "qc-warning" if typ == "warning" else "qc-info"
+            parts.append(f'<li class="qc-item {css_class}">')
+            parts.append(f'<span class="qc-severity">{esc(typ)}</span>')
+            parts.append(f"<span>{esc(msg)}</span>")
+            parts.append("</li>")
+        parts.append("</ul>")
+    else:
+        parts.append('<p class="muted">QC-сообщения не найдены.</p>')
+
+    parts.append("</section>")
+
+    # Data quality
+    parts.append('<section class="panel">')
+    parts.append('<div class="panel-header"><h2>Качество данных</h2>')
+    parts.append('<span class="panel-tag">reconciliation</span></div>')
+
+    status_class = "status-pass" if recon_status == "PASS" else "status-fail" if recon_status == "FAIL" else "status-neutral"
+    parts.append(f'<div class="status-banner {status_class}">Status: {esc(recon_status)}</div>')
+
+    if issues:
+        parts.append("<h3>Критические расхождения</h3>")
+        parts.append('<ul class="issue-list">')
+        for issue in issues:
+            parts.append(f'<li class="issue-item">{esc(issue)}</li>')
+        parts.append("</ul>")
+    else:
+        parts.append('<p class="muted">Критические расхождения не выявлены.</p>')
+
+    if warnings:
+        parts.append("<h3>Предупреждения</h3>")
+        parts.append('<ul class="warning-list">')
+        for warning in warnings:
+            parts.append(f'<li class="warning-item">{esc(warning)}</li>')
+        parts.append("</ul>")
+
+    parts.append("</section>")
+
+    # Variants
+    parts.append('<section class="panel">')
+    parts.append('<div class="panel-header"><h2>Варианты</h2>')
+    parts.append(f'<span class="panel-tag">{len(amp_rows)} cards</span></div>')
+
+    parts.append('<div class="variants-grid">')
+
+    for row in amp_rows:
+        num = get_field(row, "#")
+        pos = get_field(row, "Позиция (р. мтДНК)", "Position", "позиция")
+        gene = get_field(row, "Ген", "Gene", "ген")
+        change = get_field(row, "Замена", "Change", "замена")
+        typ = get_field(row, "Тип гена", "Type", "тип")
+        freq = get_field(row, "Популяц. частота (оценка)", "Frequency", "частота")
+        pred = get_field(row, "Функц. предиктор (рекомендация)", "Predictor", "предиктор")
+        acmg = get_field(row, "Критерии ACMG/AMP (предварит.)", "ACMG", "acmg")
+        klass = get_field(row, "Класс (предварит.)", "Class", "класс")
+        role = get_field(row, "Роль в психиатрии", "Role", "роль")
+
+        priority_label, priority_css = priority_by_type(typ)
+
+        parts.append('<article class="variant-card">')
+
+        parts.append('<div class="variant-head">')
+        parts.append("<div>")
+        parts.append(f'<div class="variant-pos">#{esc(num)} · {esc(pos)}</div>')
+        parts.append(f'<div class="variant-gene">{esc(gene)}</div>')
+        parts.append("</div>")
+
+        parts.append('<div class="variant-badges">')
+        parts.append(f'<span class="pill pill-{priority_css}">{esc(priority_label)}</span>')
+        parts.append(f'<span class="pill pill-class">{esc(klass or "—")}</span>')
+        parts.append("</div>")
+
+        parts.append("</div>")
+
+        parts.append(f'<div class="variant-change">{esc(change or "—")}</div>')
+
+        parts.append('<dl class="variant-meta">')
+
+        meta_items = [
+            ("Тип", typ),
+            ("Частота", freq),
+            ("Предиктор", pred),
+            ("ACMG/AMP", acmg),
+        ]
+
+        for label, value in meta_items:
+            parts.append("<div>")
+            parts.append(f"<dt>{esc(label)}</dt>")
+            parts.append(f"<dd>{esc(value or '—')}</dd>")
+            parts.append("</div>")
+
+        parts.append("</dl>")
+
+        parts.append(f'<p class="variant-role">{esc(role or "Роль не указана.")}</p>')
+
+        parts.append("</article>")
+
+    parts.append("</div>")
+
+    parts.append(
+        '<p class="muted">'
+        "* Приоритет — условный порядок визуализации на основе типа гена, "
+        "не клиническая классификация."
+        "</p>"
+    )
+
+    parts.append("</section>")
+
+    # Methodology
+    parts.append('<section class="panel">')
+    parts.append('<div class="panel-header"><h2>Методология</h2>')
+    parts.append('<span class="panel-tag">pipeline</span></div>')
+
+    parts.append('<ol class="timeline">')
+    parts.append("<li>Чтение <code>snps.annotations.txt</code>: позиции, REF, ALT.</li>")
+    parts.append("<li>Чтение <code>samples.qc.txt</code>: QC, гаплогруппа, missing/private mutations, ALIGN-артефакты.</li>")
+    parts.append("<li>Формирование ожидаемого AMP-набора: annotation positions минус ALIGN positions.</li>")
+    parts.append("<li>Сверка с кураторской таблицей <code>from_AMP.csv</code>.</li>")
+    parts.append("<li>Генерация sanitized статического HTML без JavaScript и внешних CDN.</li>")
+    parts.append("<li>Pre-deploy security/privacy проверка через <code>predeploy_check.py</code>.</li>")
+    parts.append("</ol>")
+
+    parts.append("</section>")
+
+    parts.append("</main>")
+
+    # Footer
+    parts.append('<footer class="footer">')
+    parts.append("Сборка: ")
+    parts.append(esc(datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")))
+    parts.append(" · dataset: ")
+    parts.append(esc(manifest.get("dataset_id", "unknown")))
+    parts.append(" · version: ")
+    parts.append(esc(manifest.get("version", "unknown")))
+    parts.append("</footer>")
+
+    parts.append("</body>")
+    parts.append("</html>")
+
+    return "\n".join(parts)
+
+
+def main():
+    manifest = load_json(CONFIG)
+
+    errors = privacy_gate(manifest)
+    if errors:
+        for err in errors:
+            print(err, file=sys.stderr)
+        raise SystemExit(1)
+
+    if not NORMALIZED.exists():
+        raise SystemExit("Run scripts/parse_sources.py first.")
+
+    normalized = load_json(NORMALIZED)
+    reconciliation = load_optional_json(RECONCILIATION)
+    amp_rows = read_amp_rows()
+
+    SITE.mkdir(parents=True, exist_ok=True)
+
+    write_netlify_toml()
+
+    html_text = build_html(manifest, normalized, reconciliation, amp_rows)
+    INDEX_HTML.write_text(html_text, encoding="utf-8")
+
+    print(f"Created: {INDEX_HTML}")
+    print(f"Created: {NETLIFY_TOML}")
+    print(f"Rows: {len(amp_rows)}")
+
+
+if __name__ == "__main__":
+    main()

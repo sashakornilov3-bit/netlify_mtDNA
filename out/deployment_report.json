@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "target": "netlify-drop-demo",
+  "dataset_id": "mtdna-psychiatry-demo",
+  "version": "0.1.0",
+  "classification": "synthetic",
+  "errors": [],
+  "warnings": [],
+  "file_hashes_sha256": {
+    "index.html": "40fd5bc6344d20cbf4159cd9cee9dcd0c694b5976e76cbd5f057d130cb981a0d",
+    "netlify.toml": "0f8af87146d98cda0af0ab89a4f737de39abc40ece6ee1e7295772f51e4083ab"
+  },
+  "file_count": 2,
+  "total_bytes": 13620
+}

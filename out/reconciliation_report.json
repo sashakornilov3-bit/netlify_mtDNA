@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "issues": [],
+  "warnings": [
+    "Expected AMP позиции не найдены в Global Private Mutations (могут быть кураторскими): 250",
+    "Кураторские позиции без подтверждения в Global Private Mutations: 250"
+  ],
+  "counts": {
+    "annotation_positions": 22,
+    "align_positions": 3,
+    "expected_amp_positions": 19,
+    "amp_csv_positions": 19,
+    "amp_csv_rows": 19,
+    "missing_positions": 4,
+    "private_positions": 21
+  }
+}

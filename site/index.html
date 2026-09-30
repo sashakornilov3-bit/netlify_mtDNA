@@ -1,0 +1,1580 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>мтДНК × Психиатрия — Dark Demo Dashboard</title>
+<style>
+
+:root {
+  --bg: #070b18;
+  --bg-2: #0b1020;
+  --surface: #0f172a;
+  --surface-2: #111827;
+  --surface-3: #162033;
+  --border: #1f2937;
+  --border-strong: #334155;
+  --text: #e5e7eb;
+  --text-strong: #f8fafc;
+  --muted: #94a3b8;
+  --primary: #6366f1;
+  --primary-2: #8b5cf6;
+  --cyan: #22d3ee;
+  --emerald: #10b981;
+  --amber: #f59e0b;
+  --rose: #fb7185;
+  --blue: #60a5fa;
+  --slate: #64748b;
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+  --radius: 20px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Arial, sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(99, 102, 241, 0.18), transparent 28%),
+    radial-gradient(circle at top right, rgba(34, 211, 238, 0.12), transparent 24%),
+    linear-gradient(180deg, var(--bg), var(--bg-2));
+  color: var(--text);
+  line-height: 1.45;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--cyan);
+}
+
+.hero {
+  padding: 38px 24px 46px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.hero-inner,
+.container {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.14);
+  border: 1px solid rgba(129, 140, 248, 0.25);
+  color: #c7d2fe;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 750;
+  margin-bottom: 14px;
+}
+
+.hero h1 {
+  margin: 0 0 12px;
+  font-size: clamp(30px, 4.2vw, 48px);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  color: var(--text-strong);
+}
+
+.hero p {
+  margin: 0;
+  max-width: 1040px;
+  color: rgba(226, 232, 240, 0.78);
+  font-size: 15px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.chip {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+.banner {
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.16), rgba(251, 113, 133, 0.12));
+  border-bottom: 1px solid rgba(245, 158, 11, 0.28);
+  color: #fde68a;
+  padding: 14px 24px;
+  font-weight: 700;
+}
+
+.banner-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.container {
+  padding: 24px;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.metric {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(17, 24, 39, 0.92));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.metric::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: var(--primary);
+}
+
+.metric-indigo::before { background: var(--primary); }
+.metric-red::before { background: var(--rose); }
+.metric-amber::before { background: var(--amber); }
+.metric-green::before { background: var(--emerald); }
+.metric-blue::before { background: var(--blue); }
+.metric-cyan::before { background: var(--cyan); }
+.metric-slate::before { background: var(--slate); }
+
+.metric-value {
+  font-size: 34px;
+  font-weight: 850;
+  letter-spacing: -0.04em;
+  color: var(--text-strong);
+}
+
+.metric-label {
+  margin-top: 4px;
+  font-weight: 750;
+  color: #dbeafe;
+}
+
+.metric-note {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.panel {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.97), rgba(11, 16, 32, 0.94));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  margin-bottom: 22px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.panel h2 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+}
+
+.panel h3 {
+  margin: 18px 0 10px;
+  font-size: 15px;
+  color: #e2e8f0;
+}
+
+.panel-tag {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.10);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.chart-wrap {
+  width: 100%;
+  overflow: hidden;
+}
+
+.chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.chart-title {
+  fill: var(--text-strong);
+  font-size: 15px;
+  font-weight: 850;
+}
+
+.chart-subtitle,
+.chart-empty {
+  fill: var(--muted);
+  font-size: 12px;
+}
+
+.bar-label,
+.value-label,
+.lane-label {
+  fill: #e2e8f0;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tick-text {
+  fill: #64748b;
+  font-size: 11px;
+}
+
+.grid-line,
+.axis-line {
+  stroke: #1f2937;
+  stroke-width: 1;
+}
+
+.donut-center-value {
+  fill: var(--text-strong);
+  font-size: 34px;
+  font-weight: 850;
+  text-anchor: middle;
+}
+
+.donut-center-label {
+  fill: var(--muted);
+  font-size: 12px;
+  text-anchor: middle;
+}
+
+.legend {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.legend li {
+  display: grid;
+  grid-template-columns: 14px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(148, 163, 184, 0.06);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.legend-label {
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.legend-value {
+  color: var(--text-strong);
+  font-size: 13px;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.profile-item {
+  background: rgba(148, 163, 184, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.profile-label {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.profile-value {
+  display: block;
+  margin-top: 6px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-strong);
+  word-break: break-word;
+}
+
+.qc-list,
+.issue-list,
+.warning-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.qc-item,
+.issue-item,
+.warning-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(148, 163, 184, 0.06);
+}
+
+.qc-severity {
+  flex: 0 0 auto;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.qc-error .qc-severity {
+  background: rgba(251, 113, 133, 0.16);
+  color: #fda4af;
+}
+
+.qc-warning .qc-severity {
+  background: rgba(245, 158, 11, 0.16);
+  color: #fcd34d;
+}
+
+.qc-info .qc-severity {
+  background: rgba(96, 165, 250, 0.16);
+  color: #93c5fd;
+}
+
+.issue-item {
+  background: rgba(251, 113, 133, 0.10);
+  border-color: rgba(251, 113, 133, 0.22);
+  color: #fecdd3;
+}
+
+.warning-item {
+  background: rgba(245, 158, 11, 0.10);
+  border-color: rgba(245, 158, 11, 0.22);
+  color: #fde68a;
+}
+
+.status-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-weight: 850;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.status-pass {
+  background: rgba(16, 185, 129, 0.14);
+  color: #6ee7b7;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.status-fail {
+  background: rgba(251, 113, 133, 0.14);
+  color: #fda4af;
+  border: 1px solid rgba(251, 113, 133, 0.25);
+}
+
+.status-neutral {
+  background: rgba(148, 163, 184, 0.12);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.20);
+}
+
+.variants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 14px;
+}
+
+.variant-card {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(17, 24, 39, 0.92));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.variant-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.42);
+}
+
+.variant-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.variant-pos {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.variant-gene {
+  font-size: 20px;
+  font-weight: 850;
+  letter-spacing: -0.02em;
+  margin-top: 2px;
+  color: var(--text-strong);
+}
+
+.variant-badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.pill {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 850;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.pill-high {
+  background: rgba(251, 113, 133, 0.14);
+  color: #fda4af;
+  border-color: rgba(251, 113, 133, 0.24);
+}
+
+.pill-medium {
+  background: rgba(245, 158, 11, 0.14);
+  color: #fcd34d;
+  border-color: rgba(245, 158, 11, 0.24);
+}
+
+.pill-low {
+  background: rgba(96, 165, 250, 0.14);
+  color: #93c5fd;
+  border-color: rgba(96, 165, 250, 0.24);
+}
+
+.pill-minimal {
+  background: rgba(148, 163, 184, 0.14);
+  color: #cbd5e1;
+  border-color: rgba(148, 163, 184, 0.24);
+}
+
+.pill-unknown {
+  background: rgba(100, 116, 139, 0.16);
+  color: #94a3b8;
+  border-color: rgba(100, 116, 139, 0.28);
+}
+
+.pill-class {
+  background: rgba(139, 92, 246, 0.16);
+  color: #c4b5fd;
+  border-color: rgba(139, 92, 246, 0.28);
+}
+
+.variant-change {
+  margin-top: 12px;
+  display: inline-flex;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: rgba(99, 102, 241, 0.14);
+  color: #c7d2fe;
+  font-weight: 850;
+  font-size: 14px;
+  border: 1px solid rgba(99, 102, 241, 0.20);
+}
+
+.variant-meta {
+  margin: 14px 0 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.variant-meta > div {
+  background: rgba(148, 163, 184, 0.06);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  min-width: 0;
+}
+
+.variant-meta dt {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.variant-meta dd {
+  margin: 5px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #e2e8f0;
+  word-break: break-word;
+}
+
+.variant-role {
+  margin: 14px 0 0;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(148, 163, 184, 0.06);
+  border: 1px solid var(--border);
+  color: #cbd5e1;
+  font-size: 13px;
+}
+
+.timeline {
+  margin: 0;
+  padding-left: 22px;
+  color: #cbd5e1;
+}
+
+.timeline li {
+  margin: 8px 0;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.footer {
+  padding: 18px 24px 34px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+code {
+  background: rgba(99, 102, 241, 0.14);
+  color: #c7d2fe;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 0.92em;
+}
+
+@media (max-width: 760px) {
+  .hero {
+    padding: 24px 16px 30px;
+  }
+
+  .container {
+    padding: 16px;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .variant-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .variant-head {
+    flex-direction: column;
+  }
+
+  .variant-badges {
+    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+
+</style>
+</head>
+<body>
+<header class="hero">
+<div class="hero-inner">
+<div class="eyebrow">mtDNA · Psychiatry · Research demo</div>
+<h1>Дашборд предварительного анализа мтДНК</h1>
+<p>Тёмный статический sanitized-дашборд с SVG-графиками, собранный локально из <code>snps.annotations.txt</code>, <code>samples.qc.txt</code> и <code>from_AMP.csv</code>. Предназначен для демонстрации pipeline, а не для клинического использования.</p>
+<div class="chips">
+<span class="chip">dataset: mtdna-psychiatry-demo</span>
+<span class="chip">version: 0.1.0</span>
+<span class="chip">classification: synthetic</span>
+<span class="chip">target: netlify-drop-demo</span>
+<span class="chip">sample: DEMO-001</span>
+</div>
+</div>
+</header>
+<div class="banner">
+<div class="banner-inner">
+⚠️ Демо-режим. Используются только synthetic/sanitized/aggregated данные. Результат не является медицинским заключением, диагнозом или рекомендацией по лечению.
+</div>
+</div>
+<main class="container">
+<section class="metrics">
+<article class="metric metric-indigo">
+<div class="metric-value">19</div>
+<div class="metric-label">Всего вариантов</div>
+<div class="metric-note">из from_AMP.csv</div>
+</article>
+<article class="metric metric-red">
+<div class="metric-value">0</div>
+<div class="metric-label">Высокий приоритет</div>
+<div class="metric-note">условно: Комплекс I</div>
+</article>
+<article class="metric metric-amber">
+<div class="metric-value">16</div>
+<div class="metric-label">Класс VUS</div>
+<div class="metric-note">предварительная классификация</div>
+</article>
+<article class="metric metric-slate">
+<div class="metric-value">3</div>
+<div class="metric-label">ALIGN исключено</div>
+<div class="metric-note">артефакты выравнивания</div>
+</article>
+<article class="metric metric-blue">
+<div class="metric-value">2</div>
+<div class="metric-label">Warnings</div>
+<div class="metric-note">неблокирующие замечания</div>
+</article>
+<article class="metric metric-green">
+<div class="metric-value">0</div>
+<div class="metric-label">Issues</div>
+<div class="metric-note">критические расхождения</div>
+</article>
+</section>
+<section class="grid-2">
+<div class="panel">
+<div class="panel-header"><h2>Распределение по типу гена</h2><span class="panel-tag">bar chart</span></div>
+<div class="chart-wrap">
+<svg class="chart" viewBox="0 0 680 208" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Функциональные категории вариантов">
+<text class="chart-title" x="0" y="24">Функциональные категории вариантов</text>
+<text class="chart-subtitle" x="0" y="46">Условная группировка по типу гена из from_AMP.csv</text>
+<text class="bar-label" x="0" y="88">рРНК</text>
+<rect x="210" y="74" width="400" height="18" rx="9" fill="#1f2937"></rect>
+<rect x="210" y="74" width="160" height="18" rx="9" fill="#22d3ee" fill-opacity="0.92"></rect>
+<text class="value-label" x="672" y="88" text-anchor="end">4</text>
+<text class="bar-label" x="0" y="126">D-loop</text>
+<rect x="210" y="112" width="400" height="18" rx="9" fill="#1f2937"></rect>
+<rect x="210" y="112" width="200" height="18" rx="9" fill="#a78bfa" fill-opacity="0.92"></rect>
+<text class="value-label" x="672" y="126" text-anchor="end">5</text>
+<text class="bar-label" x="0" y="164">Прочее</text>
+<rect x="210" y="150" width="400" height="18" rx="9" fill="#1f2937"></rect>
+<rect x="210" y="150" width="400" height="18" rx="9" fill="#64748b" fill-opacity="0.92"></rect>
+<text class="value-label" x="672" y="164" text-anchor="end">10</text>
+</svg>
+</div>
+<ul class="legend">
+<li><span class="legend-dot" style="background:#22d3ee"></span><span class="legend-label">рРНК</span><strong class="legend-value">4</strong></li>
+<li><span class="legend-dot" style="background:#a78bfa"></span><span class="legend-label">D-loop</span><strong class="legend-value">5</strong></li>
+<li><span class="legend-dot" style="background:#64748b"></span><span class="legend-label">Прочее</span><strong class="legend-value">10</strong></li>
+</ul>
+</div>
+<div class="panel">
+<div class="panel-header"><h2>Классы ACMG/AMP</h2><span class="panel-tag">donut chart</span></div>
+<div class="chart-wrap">
+<svg class="chart donut" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Классы ACMG/AMP">
+<circle cx="140.0" cy="140.0" r="78" fill="none" stroke="#111827" stroke-width="32"></circle>
+<circle cx="140.0" cy="140.0" r="78" fill="none" stroke="#f59e0b" stroke-width="32" stroke-linecap="butt" stroke-dasharray="412.71 77.38" stroke-dashoffset="-0.00" transform="rotate(-90 140.0 140.0)"></circle>
+<circle cx="140.0" cy="140.0" r="78" fill="none" stroke="#64748b" stroke-width="32" stroke-linecap="butt" stroke-dasharray="25.79 464.29" stroke-dashoffset="-412.71" transform="rotate(-90 140.0 140.0)"></circle>
+<circle cx="140.0" cy="140.0" r="78" fill="none" stroke="#64748b" stroke-width="32" stroke-linecap="butt" stroke-dasharray="25.79 464.29" stroke-dashoffset="-438.50" transform="rotate(-90 140.0 140.0)"></circle>
+<circle cx="140.0" cy="140.0" r="78" fill="none" stroke="#64748b" stroke-width="32" stroke-linecap="butt" stroke-dasharray="25.79 464.29" stroke-dashoffset="-464.29" transform="rotate(-90 140.0 140.0)"></circle>
+<text class="donut-center-value" x="140.0" y="138.0">19</text>
+<text class="donut-center-label" x="140.0" y="162.0">вариантов</text>
+</svg>
+</div>
+<ul class="legend">
+<li><span class="legend-dot" style="background:#f59e0b"></span><span class="legend-label">VUS</span><strong class="legend-value">16</strong></li>
+<li><span class="legend-dot" style="background:#64748b"></span><span class="legend-label">MTOOLBOX (MUTPRED, POLYPHEN-2, SNPS&amp;GO)</span><strong class="legend-value">1</strong></li>
+<li><span class="legend-dot" style="background:#64748b"></span><span class="legend-label">PM2 + PP3</span><strong class="legend-value">1</strong></li>
+<li><span class="legend-dot" style="background:#64748b"></span><span class="legend-label">MTOOLBOX</span><strong class="legend-value">1</strong></li>
+</ul>
+</div>
+</section>
+<section class="panel">
+<div class="panel-header"><h2>Геномная карта</h2><span class="panel-tag">position map</span></div>
+<div class="chart-wrap">
+<svg class="chart position-map" viewBox="0 0 980 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Карта позиций мтДНК">
+<text class="chart-title" x="0" y="24">Карта позиций мтДНК</text>
+<text class="chart-subtitle" x="0" y="46">Аннотированные позиции, AMP-кандидаты и ALIGN-артефакты</text>
+<circle cx="18" cy="105" r="5" fill="#64748b"></circle>
+<text class="lane-label" x="32" y="109">Все аннотированные</text>
+<circle cx="18" cy="155" r="5" fill="#22d3ee"></circle>
+<text class="lane-label" x="32" y="159">AMP кандидаты</text>
+<circle cx="18" cy="205" r="5" fill="#fb7185"></circle>
+<text class="lane-label" x="32" y="209">ALIGN исключены</text>
+<line class="grid-line" x1="155.00" y1="60" x2="155.00" y2="220"></line>
+<text class="tick-text" x="155.00" y="240" text-anchor="middle">0</text>
+<line class="grid-line" x1="394.91" y1="60" x2="394.91" y2="220"></line>
+<text class="tick-text" x="394.91" y="240" text-anchor="middle">5000</text>
+<line class="grid-line" x1="634.81" y1="60" x2="634.81" y2="220"></line>
+<text class="tick-text" x="634.81" y="240" text-anchor="middle">10000</text>
+<line class="grid-line" x1="950.00" y1="60" x2="950.00" y2="220"></line>
+<text class="tick-text" x="950.00" y="240" text-anchor="middle">16569</text>
+<line class="axis-line" x1="155" y1="220" x2="950" y2="220"></line>
+<circle cx="167.00" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="174.67" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="237.58" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="267.95" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="274.23" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="478.15" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="604.97" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="612.79" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="633.23" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="636.49" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="646.28" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="674.16" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="717.48" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="754.86" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="771.61" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="816.23" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="876.83" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="889.21" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="919.10" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="928.94" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="938.15" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="941.56" cy="105" r="5" fill="#64748b" fill-opacity="0.85"></circle>
+<circle cx="167.00" cy="155" r="7" fill="#22d3ee" stroke="#0b1020" stroke-width="2"></circle>
+<circle cx="174.67" cy="155" r="7" fill="#22d3ee" stroke="#0b1020" stroke-width="2"></circle>
+<circle cx="237.58" cy="155" r="7" fill="#22d3ee" stroke="#0b1020" stroke-width="2"></circle>
+<circle cx="267.95" cy="155" r="7" fill="#22d3ee" stroke="#0b1020" stroke-width="2"></circle>
+<circle cx="604.97" cy="155" r="7" fill="#22d3ee" stroke="#0b1020" stroke-width="2"></circle>
+<circle cx="633.23" cy="155" r="7" fill="#22d3ee" stroke="#0b1020" stroke-width="2"></circle>
+<circle cx="636.49" cy="155" r="7" fill="#22d3ee" stroke="#0b1020" stroke-width="2"></circle>
+<circle cx="646.28" cy="155" r="7" fill="#22d3ee" stroke="#0b1020" stroke-width="2"></circle>
+<circle cx="674.16" cy="155" r="7" fill="#22d3ee" stroke="#0b1020" stroke-width="2"></circle>
+<circle cx="717.48" cy="155" r="7" fill="#22d3ee" stroke="#0b1020" stroke-width="2"></circle>
+<circle cx="754.86" cy="155" r="7" fill="#22d3ee" stroke="#0b1020" stroke-width="2"></circle>
+<circle cx="771.61" cy="155" r="7" fill="#22d3ee" stroke="#0b1020" stroke-width="2"></circle>
+<circle cx="816.23" cy="155" r="7" fill="#22d3ee" stroke="#0b1020" stroke-width="2"></circle>
+<circle cx="876.83" cy="155" r="7" fill="#22d3ee" stroke="#0b1020" stroke-width="2"></circle>
+<circle cx="889.21" cy="155" r="7" fill="#22d3ee" stroke="#0b1020" stroke-width="2"></circle>
+<circle cx="919.10" cy="155" r="7" fill="#22d3ee" stroke="#0b1020" stroke-width="2"></circle>
+<circle cx="928.94" cy="155" r="7" fill="#22d3ee" stroke="#0b1020" stroke-width="2"></circle>
+<circle cx="938.15" cy="155" r="7" fill="#22d3ee" stroke="#0b1020" stroke-width="2"></circle>
+<circle cx="941.56" cy="155" r="7" fill="#22d3ee" stroke="#0b1020" stroke-width="2"></circle>
+<line x1="268.23" y1="199" x2="280.23" y2="211" stroke="#fb7185" stroke-width="3" stroke-linecap="round"></line>
+<line x1="268.23" y1="211" x2="280.23" y2="199" stroke="#fb7185" stroke-width="3" stroke-linecap="round"></line>
+<line x1="472.15" y1="199" x2="484.15" y2="211" stroke="#fb7185" stroke-width="3" stroke-linecap="round"></line>
+<line x1="472.15" y1="211" x2="484.15" y2="199" stroke="#fb7185" stroke-width="3" stroke-linecap="round"></line>
+<line x1="606.79" y1="199" x2="618.79" y2="211" stroke="#fb7185" stroke-width="3" stroke-linecap="round"></line>
+<line x1="606.79" y1="211" x2="618.79" y2="199" stroke="#fb7185" stroke-width="3" stroke-linecap="round"></line>
+</svg>
+</div>
+<p class="muted">Серые точки — все аннотированные позиции. Голубые — AMP-кандидаты. Красные крестики — ALIGN-артефакты, исключённые из дальнейшего анализа.</p>
+</section>
+<section class="panel">
+<div class="panel-header"><h2>Топ генов</h2><span class="panel-tag">top 8</span></div>
+<div class="chart-wrap">
+<svg class="chart" viewBox="0 0 680 398" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Наиболее частые гены в выборке">
+<text class="chart-title" x="0" y="24">Наиболее частые гены в выборке</text>
+<text class="chart-subtitle" x="0" y="46">Подсчёт по полю «Ген» из from_AMP.csv</text>
+<text class="bar-label" x="0" y="88">D-loop</text>
+<rect x="210" y="74" width="400" height="18" rx="9" fill="#1f2937"></rect>
+<rect x="210" y="74" width="400" height="18" rx="9" fill="#22d3ee" fill-opacity="0.92"></rect>
+<text class="value-label" x="672" y="88" text-anchor="end">5</text>
+<text class="bar-label" x="0" y="126">MT-ND5</text>
+<rect x="210" y="112" width="400" height="18" rx="9" fill="#1f2937"></rect>
+<rect x="210" y="112" width="240" height="18" rx="9" fill="#22d3ee" fill-opacity="0.92"></rect>
+<text class="value-label" x="672" y="126" text-anchor="end">3</text>
+<text class="bar-label" x="0" y="164">MT-CO3</text>
+<rect x="210" y="150" width="400" height="18" rx="9" fill="#1f2937"></rect>
+<rect x="210" y="150" width="160" height="18" rx="9" fill="#22d3ee" fill-opacity="0.92"></rect>
+<text class="value-label" x="672" y="164" text-anchor="end">2</text>
+<text class="bar-label" x="0" y="202">MT-ND4</text>
+<rect x="210" y="188" width="400" height="18" rx="9" fill="#1f2937"></rect>
+<rect x="210" y="188" width="160" height="18" rx="9" fill="#22d3ee" fill-opacity="0.92"></rect>
+<text class="value-label" x="672" y="202" text-anchor="end">2</text>
+<text class="bar-label" x="0" y="240">MT-CYB</text>
+<rect x="210" y="226" width="400" height="18" rx="9" fill="#1f2937"></rect>
+<rect x="210" y="226" width="160" height="18" rx="9" fill="#22d3ee" fill-opacity="0.92"></rect>
+<text class="value-label" x="672" y="240" text-anchor="end">2</text>
+<text class="bar-label" x="0" y="278">MT-RNR1</text>
+<rect x="210" y="264" width="400" height="18" rx="9" fill="#1f2937"></rect>
+<rect x="210" y="264" width="80" height="18" rx="9" fill="#22d3ee" fill-opacity="0.92"></rect>
+<text class="value-label" x="672" y="278" text-anchor="end">1</text>
+<text class="bar-label" x="0" y="316">MT-RNR2</text>
+<rect x="210" y="302" width="400" height="18" rx="9" fill="#1f2937"></rect>
+<rect x="210" y="302" width="80" height="18" rx="9" fill="#22d3ee" fill-opacity="0.92"></rect>
+<text class="value-label" x="672" y="316" text-anchor="end">1</text>
+<text class="bar-label" x="0" y="354">MT-TG</text>
+<rect x="210" y="340" width="400" height="18" rx="9" fill="#1f2937"></rect>
+<rect x="210" y="340" width="80" height="18" rx="9" fill="#22d3ee" fill-opacity="0.92"></rect>
+<text class="value-label" x="672" y="354" text-anchor="end">1</text>
+</svg>
+</div>
+<ul class="legend">
+<li><span class="legend-dot" style="background:#22d3ee"></span><span class="legend-label">D-loop</span><strong class="legend-value">5</strong></li>
+<li><span class="legend-dot" style="background:#22d3ee"></span><span class="legend-label">MT-ND5</span><strong class="legend-value">3</strong></li>
+<li><span class="legend-dot" style="background:#22d3ee"></span><span class="legend-label">MT-CO3</span><strong class="legend-value">2</strong></li>
+<li><span class="legend-dot" style="background:#22d3ee"></span><span class="legend-label">MT-ND4</span><strong class="legend-value">2</strong></li>
+<li><span class="legend-dot" style="background:#22d3ee"></span><span class="legend-label">MT-CYB</span><strong class="legend-value">2</strong></li>
+<li><span class="legend-dot" style="background:#22d3ee"></span><span class="legend-label">MT-RNR1</span><strong class="legend-value">1</strong></li>
+<li><span class="legend-dot" style="background:#22d3ee"></span><span class="legend-label">MT-RNR2</span><strong class="legend-value">1</strong></li>
+<li><span class="legend-dot" style="background:#22d3ee"></span><span class="legend-label">MT-TG</span><strong class="legend-value">1</strong></li>
+</ul>
+</section>
+<section class="panel">
+<div class="panel-header"><h2>Профиль образца и QC</h2><span class="panel-tag">sanitized view</span></div>
+<div class="profile-grid">
+<div class="profile-item">
+<span class="profile-label">Sample label</span>
+<span class="profile-value">DEMO-001</span>
+</div>
+<div class="profile-item">
+<span class="profile-label">Haplogroup</span>
+<span class="profile-value">скрыто</span>
+</div>
+<div class="profile-item">
+<span class="profile-label">Annotation positions</span>
+<span class="profile-value">22</span>
+</div>
+<div class="profile-item">
+<span class="profile-label">ALIGN excluded</span>
+<span class="profile-value">2485, 6735, 9541</span>
+</div>
+<div class="profile-item">
+<span class="profile-label">Expected AMP positions</span>
+<span class="profile-value">19</span>
+</div>
+<div class="profile-item">
+<span class="profile-label">Global private detected</span>
+<span class="profile-value">21</span>
+</div>
+<div class="profile-item">
+<span class="profile-label">Missing detected</span>
+<span class="profile-value">4</span>
+</div>
+<div class="profile-item">
+<span class="profile-label">Reconciliation status</span>
+<span class="profile-value">PASS</span>
+</div>
+</div>
+</section>
+<section class="panel">
+<div class="panel-header"><h2>QC-сообщения</h2><span class="panel-tag">4 items</span></div>
+<ul class="qc-list">
+<li class="qc-item qc-error">
+<span class="qc-severity">error</span>
+<span>The sample misses 0.67 % of the exepected polymorphisms.  (QUAL)</span>
+</li>
+<li class="qc-item qc-error">
+<span class="qc-severity">error</span>
+<span>The sample contains 3 variants according the rCRS: 2485T	6735A	9541T	 (ALIGN)</span>
+</li>
+<li class="qc-item qc-warning">
+<span class="qc-severity">warning</span>
+<span>The sample contains 18 global private mutation(s) that are not known by Phylotree (QUAL)</span>
+</li>
+<li class="qc-item qc-warning">
+<span class="qc-severity">warning</span>
+<span>The detected haplogroup quality 0.65 is below 0.9. (QUAL)</span>
+</li>
+</ul>
+</section>
+<section class="panel">
+<div class="panel-header"><h2>Качество данных</h2><span class="panel-tag">reconciliation</span></div>
+<div class="status-banner status-pass">Status: PASS</div>
+<p class="muted">Критические расхождения не выявлены.</p>
+<h3>Предупреждения</h3>
+<ul class="warning-list">
+<li class="warning-item">Expected AMP позиции не найдены в Global Private Mutations (могут быть кураторскими): 250</li>
+<li class="warning-item">Кураторские позиции без подтверждения в Global Private Mutations: 250</li>
+</ul>
+</section>
+<section class="panel">
+<div class="panel-header"><h2>Варианты</h2><span class="panel-tag">19 cards</span></div>
+<div class="variants-grid">
+<article class="variant-card">
+<div class="variant-head">
+<div>
+<div class="variant-pos">#1 · 250</div>
+<div class="variant-gene">D-loop</div>
+</div>
+<div class="variant-badges">
+<span class="pill pill-minimal">Минимальный</span>
+<span class="pill pill-class">VUS</span>
+</div>
+</div>
+<div class="variant-change">T→C</div>
+<dl class="variant-meta">
+<div>
+<dt>Тип</dt>
+<dd>Контрольная зона (некодирующий)</dd>
+</div>
+<div>
+<dt>Частота</dt>
+<dd>Приватная (нет в Phylotree); вероятно &lt;0.1 %</dd>
+</div>
+<div>
+<dt>Предиктор</dt>
+<dd>Проверить попадание в LSP/OriH/CSB/TAS; консервация (PhastCons)</dd>
+</div>
+<div>
+<dt>ACMG/AMP</dt>
+<dd>PM2 + (PP3 если в регуляторном сайте)</dd>
+</div>
+</dl>
+<p class="variant-role">Косвенная: регуляция экспрессии мтДНК</p>
+</article>
+<article class="variant-card">
+<div class="variant-head">
+<div>
+<div class="variant-pos">#2 · 410</div>
+<div class="variant-gene">D-loop</div>
+</div>
+<div class="variant-badges">
+<span class="pill pill-minimal">Минимальный</span>
+<span class="pill pill-class">VUS</span>
+</div>
+</div>
+<div class="variant-change">G→T</div>
+<dl class="variant-meta">
+<div>
+<dt>Тип</dt>
+<dd>Контрольная зона</dd>
+</div>
+<div>
+<dt>Частота</dt>
+<dd>Приватная</dd>
+</div>
+<div>
+<dt>Предиктор</dt>
+<dd>Проверка регуляторных элементов</dd>
+</div>
+<div>
+<dt>ACMG/AMP</dt>
+<dd>PM2</dd>
+</div>
+</dl>
+<p class="variant-role">Косвенная</p>
+</article>
+<article class="variant-card">
+<div class="variant-head">
+<div>
+<div class="variant-pos">#3 · 1721</div>
+<div class="variant-gene">MT-RNR1 (12S рРНК)</div>
+</div>
+<div class="variant-badges">
+<span class="pill pill-medium">Средний</span>
+<span class="pill pill-class">VUS</span>
+</div>
+</div>
+<div class="variant-change">C→A</div>
+<dl class="variant-meta">
+<div>
+<dt>Тип</dt>
+<dd>рРНК</dd>
+</div>
+<div>
+<dt>Частота</dt>
+<dd>Приватная</dd>
+</div>
+<div>
+<dt>Предиктор</dt>
+<dd>rAPOGEE (из набора nAPOGEE); консервация позиции (MLC из gnomAD)</dd>
+</div>
+<div>
+<dt>ACMG/AMP</dt>
+<dd>PM2 + PP3 (если rAPOGEE &gt; порога) + возможный PM1</dd>
+</div>
+</dl>
+<p class="variant-role">Нарушение трансляции → энергодефицит нейронов; описаны при нейродегенерации</p>
+</article>
+<article class="variant-card">
+<div class="variant-head">
+<div>
+<div class="variant-pos">#4 · 2354</div>
+<div class="variant-gene">MT-RNR2 (16S рРНК)</div>
+</div>
+<div class="variant-badges">
+<span class="pill pill-medium">Средний</span>
+<span class="pill pill-class">VUS</span>
+</div>
+</div>
+<div class="variant-change">A→T</div>
+<dl class="variant-meta">
+<div>
+<dt>Тип</dt>
+<dd>рРНК</dd>
+</div>
+<div>
+<dt>Частота</dt>
+<dd>Приватная</dd>
+</div>
+<div>
+<dt>Предиктор</dt>
+<dd>rAPOGEE; проверка консервативности позиции</dd>
+</div>
+<div>
+<dt>ACMG/AMP</dt>
+<dd>PM2 + PP3 + PM1 (если консервативна)</dd>
+</div>
+</dl>
+<p class="variant-role">Аналогично 12S; OEUF = 0.30 → сильное негативное давление отбора</p>
+</article>
+<article class="variant-card">
+<div class="variant-head">
+<div>
+<div class="variant-pos">#5 · 9378</div>
+<div class="variant-gene">MT-CO3 (комплекс IV)</div>
+</div>
+<div class="variant-badges">
+<span class="pill pill-unknown">Не определён</span>
+<span class="pill pill-class">VUS</span>
+</div>
+</div>
+<div class="variant-change">T→A</div>
+<dl class="variant-meta">
+<div>
+<dt>Тип</dt>
+<dd>Кодирующий (цитохром с оксидаза)</dd>
+</div>
+<div>
+<dt>Частота</dt>
+<dd>Приватная</dd>
+</div>
+<div>
+<dt>Предиктор</dt>
+<dd>MToolBox (MutPred + Polyphen-2 + SNPs&amp;GO) → «общий балл болезни»</dd>
+</div>
+<div>
+<dt>ACMG/AMP</dt>
+<dd>PM2 + PP3 (если ≥2 предиктора «повреждающий»)</dd>
+</div>
+</dl>
+<p class="variant-role">Энергетический дефицит нейронов; описан при когнитивных нарушениях</p>
+</article>
+<article class="variant-card">
+<div class="variant-head">
+<div>
+<div class="variant-pos">#6 · 9967</div>
+<div class="variant-gene">MT-CO3 (комплекс IV)</div>
+</div>
+<div class="variant-badges">
+<span class="pill pill-unknown">Не определён</span>
+<span class="pill pill-class">VUS</span>
+</div>
+</div>
+<div class="variant-change">T→A</div>
+<dl class="variant-meta">
+<div>
+<dt>Тип</dt>
+<dd>Кодирующий</dd>
+</div>
+<div>
+<dt>Частота</dt>
+<dd>Приватная</dd>
+</div>
+<div>
+<dt>Предиктор</dt>
+<dd>MToolBox</dd>
+</div>
+<div>
+<dt>ACMG/AMP</dt>
+<dd>PM2 + PP3</dd>
+</div>
+</dl>
+<p class="variant-role">Аналогично поз. 9378</p>
+</article>
+<article class="variant-card">
+<div class="variant-head">
+<div>
+<div class="variant-pos">#7 · 10035</div>
+<div class="variant-gene">MT-TG (тРНК Gly)</div>
+</div>
+<div class="variant-badges">
+<span class="pill pill-medium">Средний</span>
+<span class="pill pill-class">VUS</span>
+</div>
+</div>
+<div class="variant-change">T→C</div>
+<dl class="variant-meta">
+<div>
+<dt>Тип</dt>
+<dd>тРНК</dd>
+</div>
+<div>
+<dt>Частота</dt>
+<dd>Приватная</dd>
+</div>
+<div>
+<dt>Предиктор</dt>
+<dd>MitoTIP + tAPOGEE (из nAPOGEE); оценка влияния на «трилистник»</dd>
+</div>
+<div>
+<dt>ACMG/AMP</dt>
+<dd>PM2 + PP3 (если MitoTIP/tAPOGEE предсказывают патогенность)</dd>
+</div>
+</dl>
+<p class="variant-role">Нарушение трансляции; тРНК-мутации — частая причина энцефалопатий</p>
+</article>
+<article class="variant-card">
+<div class="variant-head">
+<div>
+<div class="variant-pos">#8 · 10239</div>
+<div class="variant-gene">MT-ND3 (комплекс I)</div>
+</div>
+<div class="variant-badges">
+<span class="pill pill-unknown">Не определён</span>
+<span class="pill pill-class">MToolBox (MutPred, Polyphen-2, SNPs&amp;GO)</span>
+</div>
+</div>
+<div class="variant-change">A→C</div>
+<dl class="variant-meta">
+<div>
+<dt>Тип</dt>
+<dd>Кодирующий</dd>
+</div>
+<div>
+<dt>Частота</dt>
+<dd>депрессии</dd>
+</div>
+<div>
+<dt>Предиктор</dt>
+<dd>биполярном расстройстве&quot;</dd>
+</div>
+<div>
+<dt>ACMG/AMP</dt>
+<dd>Приватная</dd>
+</div>
+</dl>
+<p class="variant-role">Прямая связь:&quot; комплекс I — основной источник АФК; дефицит описан при шизофрении</p>
+</article>
+<article class="variant-card">
+<div class="variant-head">
+<div>
+<div class="variant-pos">#9 · 10820</div>
+<div class="variant-gene">MT-ND4 (комплекс I)</div>
+</div>
+<div class="variant-badges">
+<span class="pill pill-unknown">Не определён</span>
+<span class="pill pill-class">PM2 + PP3</span>
+</div>
+</div>
+<div class="variant-change">C→A</div>
+<dl class="variant-meta">
+<div>
+<dt>Тип</dt>
+<dd>Кодирующий</dd>
+</div>
+<div>
+<dt>Частота</dt>
+<dd>который может сопровождаться психиатрическими симптомами&quot;</dd>
+</div>
+<div>
+<dt>Предиктор</dt>
+<dd>Приватная</dd>
+</div>
+<div>
+<dt>ACMG/AMP</dt>
+<dd>MToolBox</dd>
+</div>
+</dl>
+<p class="variant-role">Прямая связь:&quot; мутации в ND4 ассоциированы с LHON</p>
+</article>
+<article class="variant-card">
+<div class="variant-head">
+<div>
+<div class="variant-pos">#10 · 11723</div>
+<div class="variant-gene">MT-ND4 (комплекс I)</div>
+</div>
+<div class="variant-badges">
+<span class="pill pill-unknown">Не определён</span>
+<span class="pill pill-class">VUS</span>
+</div>
+</div>
+<div class="variant-change">A→T</div>
+<dl class="variant-meta">
+<div>
+<dt>Тип</dt>
+<dd>Кодирующий</dd>
+</div>
+<div>
+<dt>Частота</dt>
+<dd>Приватная</dd>
+</div>
+<div>
+<dt>Предиктор</dt>
+<dd>MToolBox</dd>
+</div>
+<div>
+<dt>ACMG/AMP</dt>
+<dd>PM2 + PP3</dd>
+</div>
+</dl>
+<p class="variant-role">Аналогично поз. 10820</p>
+</article>
+<article class="variant-card">
+<div class="variant-head">
+<div>
+<div class="variant-pos">#11 · 12502</div>
+<div class="variant-gene">MT-ND5 (комплекс I)</div>
+</div>
+<div class="variant-badges">
+<span class="pill pill-unknown">Не определён</span>
+<span class="pill pill-class">MToolBox</span>
+</div>
+</div>
+<div class="variant-change">T→A</div>
+<dl class="variant-meta">
+<div>
+<dt>Тип</dt>
+<dd>Кодирующий</dd>
+</div>
+<div>
+<dt>Частота</dt>
+<dd>синдроме Лебера; психиатрические проявления (психоз</dd>
+</div>
+<div>
+<dt>Предиктор</dt>
+<dd>депрессия) — характерная часть фенотипа&quot;</dd>
+</div>
+<div>
+<dt>ACMG/AMP</dt>
+<dd>Приватная</dd>
+</div>
+</dl>
+<p class="variant-role">Прямая связь:&quot; мутации в ND5 описаны при MELAS</p>
+</article>
+<article class="variant-card">
+<div class="variant-head">
+<div>
+<div class="variant-pos">#12 · 12851</div>
+<div class="variant-gene">MT-ND5 (комплекс I)</div>
+</div>
+<div class="variant-badges">
+<span class="pill pill-unknown">Не определён</span>
+<span class="pill pill-class">VUS</span>
+</div>
+</div>
+<div class="variant-change">T→A</div>
+<dl class="variant-meta">
+<div>
+<dt>Тип</dt>
+<dd>Кодирующий</dd>
+</div>
+<div>
+<dt>Частота</dt>
+<dd>Приватная</dd>
+</div>
+<div>
+<dt>Предиктор</dt>
+<dd>MToolBox</dd>
+</div>
+<div>
+<dt>ACMG/AMP</dt>
+<dd>PM2 + PP3</dd>
+</div>
+</dl>
+<p class="variant-role">Аналогично поз. 12502</p>
+</article>
+<article class="variant-card">
+<div class="variant-head">
+<div>
+<div class="variant-pos">#13 · 13781</div>
+<div class="variant-gene">MT-ND5 (комплекс I)</div>
+</div>
+<div class="variant-badges">
+<span class="pill pill-unknown">Не определён</span>
+<span class="pill pill-class">VUS</span>
+</div>
+</div>
+<div class="variant-change">T→G</div>
+<dl class="variant-meta">
+<div>
+<dt>Тип</dt>
+<dd>Кодирующий</dd>
+</div>
+<div>
+<dt>Частота</dt>
+<dd>Приватная</dd>
+</div>
+<div>
+<dt>Предиктор</dt>
+<dd>MToolBox</dd>
+</div>
+<div>
+<dt>ACMG/AMP</dt>
+<dd>PM2 + PP3</dd>
+</div>
+</dl>
+<p class="variant-role">Аналогично поз. 12502</p>
+</article>
+<article class="variant-card">
+<div class="variant-head">
+<div>
+<div class="variant-pos">#14 · 15044</div>
+<div class="variant-gene">MT-CYB (комплекс III)</div>
+</div>
+<div class="variant-badges">
+<span class="pill pill-unknown">Не определён</span>
+<span class="pill pill-class">VUS</span>
+</div>
+</div>
+<div class="variant-change">C→A</div>
+<dl class="variant-meta">
+<div>
+<dt>Тип</dt>
+<dd>Кодирующий</dd>
+</div>
+<div>
+<dt>Частота</dt>
+<dd>Приватная</dd>
+</div>
+<div>
+<dt>Предиктор</dt>
+<dd>MToolBox</dd>
+</div>
+<div>
+<dt>ACMG/AMP</dt>
+<dd>PM2 + PP3</dd>
+</div>
+</dl>
+<p class="variant-role">Мутации CYB описаны при синдроме Лебера; возможны нейропсихиатрические проявления</p>
+</article>
+<article class="variant-card">
+<div class="variant-head">
+<div>
+<div class="variant-pos">#15 · 15302</div>
+<div class="variant-gene">MT-CYB (комплекс III)</div>
+</div>
+<div class="variant-badges">
+<span class="pill pill-unknown">Не определён</span>
+<span class="pill pill-class">VUS</span>
+</div>
+</div>
+<div class="variant-change">C→G</div>
+<dl class="variant-meta">
+<div>
+<dt>Тип</dt>
+<dd>Кодирующий</dd>
+</div>
+<div>
+<dt>Частота</dt>
+<dd>Приватная</dd>
+</div>
+<div>
+<dt>Предиктор</dt>
+<dd>MToolBox</dd>
+</div>
+<div>
+<dt>ACMG/AMP</dt>
+<dd>PM2 + PP3</dd>
+</div>
+</dl>
+<p class="variant-role">Аналогично поз. 15044</p>
+</article>
+<article class="variant-card">
+<div class="variant-head">
+<div>
+<div class="variant-pos">#16 · 15925</div>
+<div class="variant-gene">MT-TT (тРНК Thr)</div>
+</div>
+<div class="variant-badges">
+<span class="pill pill-medium">Средний</span>
+<span class="pill pill-class">VUS</span>
+</div>
+</div>
+<div class="variant-change">C→G</div>
+<dl class="variant-meta">
+<div>
+<dt>Тип</dt>
+<dd>тРНК</dd>
+</div>
+<div>
+<dt>Частота</dt>
+<dd>Приватная</dd>
+</div>
+<div>
+<dt>Предиктор</dt>
+<dd>MitoTIP + tAPOGEE</dd>
+</div>
+<div>
+<dt>ACMG/AMP</dt>
+<dd>PM2 + PP3</dd>
+</div>
+</dl>
+<p class="variant-role">Нарушение трансляции; может приводить к митохондриальной энцефалопатии</p>
+</article>
+<article class="variant-card">
+<div class="variant-head">
+<div>
+<div class="variant-pos">#17 · 16130</div>
+<div class="variant-gene">D-loop</div>
+</div>
+<div class="variant-badges">
+<span class="pill pill-minimal">Минимальный</span>
+<span class="pill pill-class">VUS</span>
+</div>
+</div>
+<div class="variant-change">G→A</div>
+<dl class="variant-meta">
+<div>
+<dt>Тип</dt>
+<dd>Контрольная зона</dd>
+</div>
+<div>
+<dt>Частота</dt>
+<dd>Приватная (не в Phylotree для данной гаплогруппы)</dd>
+</div>
+<div>
+<dt>Предиктор</dt>
+<dd>Проверка регуляторных сайтов</dd>
+</div>
+<div>
+<dt>ACMG/AMP</dt>
+<dd>PM2</dd>
+</div>
+</dl>
+<p class="variant-role">Косвенная; известные полиморфизмы в HVS1</p>
+</article>
+<article class="variant-card">
+<div class="variant-head">
+<div>
+<div class="variant-pos">#18 · 16322</div>
+<div class="variant-gene">D-loop</div>
+</div>
+<div class="variant-badges">
+<span class="pill pill-minimal">Минимальный</span>
+<span class="pill pill-class">VUS</span>
+</div>
+</div>
+<div class="variant-change">A→C</div>
+<dl class="variant-meta">
+<div>
+<dt>Тип</dt>
+<dd>Контрольная зона</dd>
+</div>
+<div>
+<dt>Частота</dt>
+<dd>Приватная</dd>
+</div>
+<div>
+<dt>Предиктор</dt>
+<dd>Проверка регуляторных сайтов</dd>
+</div>
+<div>
+<dt>ACMG/AMP</dt>
+<dd>PM2</dd>
+</div>
+</dl>
+<p class="variant-role">Косвенная</p>
+</article>
+<article class="variant-card">
+<div class="variant-head">
+<div>
+<div class="variant-pos">#19 · 16393</div>
+<div class="variant-gene">D-loop</div>
+</div>
+<div class="variant-badges">
+<span class="pill pill-minimal">Минимальный</span>
+<span class="pill pill-class">VUS</span>
+</div>
+</div>
+<div class="variant-change">C→A</div>
+<dl class="variant-meta">
+<div>
+<dt>Тип</dt>
+<dd>Контрольная зона</dd>
+</div>
+<div>
+<dt>Частота</dt>
+<dd>Приватная</dd>
+</div>
+<div>
+<dt>Предиктор</dt>
+<dd>Проверка регуляторных сайтов</dd>
+</div>
+<div>
+<dt>ACMG/AMP</dt>
+<dd>PM2</dd>
+</div>
+</dl>
+<p class="variant-role">Косвенная</p>
+</article>
+</div>
+<p class="muted">* Приоритет — условный порядок визуализации на основе типа гена, не клиническая классификация.</p>
+</section>
+<section class="panel">
+<div class="panel-header"><h2>Методология</h2><span class="panel-tag">pipeline</span></div>
+<ol class="timeline">
+<li>Чтение <code>snps.annotations.txt</code>: позиции, REF, ALT.</li>
+<li>Чтение <code>samples.qc.txt</code>: QC, гаплогруппа, missing/private mutations, ALIGN-артефакты.</li>
+<li>Формирование ожидаемого AMP-набора: annotation positions минус ALIGN positions.</li>
+<li>Сверка с кураторской таблицей <code>from_AMP.csv</code>.</li>
+<li>Генерация sanitized статического HTML без JavaScript и внешних CDN.</li>
+<li>Графики выполняются как inline SVG для снижения surface area.</li>
+<li>Pre-deploy security/privacy проверка через <code>predeploy_check.py</code>.</li>
+</ol>
+</section>
+</main>
+<footer class="footer">
+Сборка: 
+2026-09-26 12:49 UTC
+ · dataset: 
+mtdna-psychiatry-demo
+ · version: 
+0.1.0
+</footer>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "dataset_id": "mtdna-psychiatry-demo",
+  "version": "0.1.0",
+  "classification": "synthetic",
+  "contains_personal_data": false,
+  "contains_special_category_data": false,
+  "contains_biometric_context": false,
+  "owner": "local-user",
+  "data_approver": "local-user",
+  "security_approver": "local-user",
+  "legal_approver": "local-user",
+  "approval_date": "2026-09-26",
+  "allowed_targets": ["netlify-drop-demo"],
+  "public_deploy_allowed": true,
+  "sample_label": "DEMO-001",
+  "show_haplogroup": false,
+  "expected_variant_count": 19,
+  "prohibited_strings": ["no4959", "I5a1a"],
+  "max_site_bytes": 50000000,
+  "max_file_bytes": 10000000,
+  "max_files": 54000,
+  "require_disclaimer": true
+}

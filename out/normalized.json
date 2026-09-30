@@ -1,0 +1,239 @@
+{
+  "sample_ids": [
+    "no4959"
+  ],
+  "haplogroups": [
+    "I5a1a"
+  ],
+  "annotation_positions": [
+    250,
+    410,
+    1721,
+    2354,
+    2485,
+    6735,
+    9378,
+    9541,
+    9967,
+    10035,
+    10239,
+    10820,
+    11723,
+    12502,
+    12851,
+    13781,
+    15044,
+    15302,
+    15925,
+    16130,
+    16322,
+    16393
+  ],
+  "annotation_records": [
+    {
+      "position": 250,
+      "ref": "T",
+      "alt": "C"
+    },
+    {
+      "position": 410,
+      "ref": "G",
+      "alt": "T"
+    },
+    {
+      "position": 1721,
+      "ref": "C",
+      "alt": "A"
+    },
+    {
+      "position": 2354,
+      "ref": "A",
+      "alt": "T"
+    },
+    {
+      "position": 2485,
+      "ref": "T",
+      "alt": "T"
+    },
+    {
+      "position": 6735,
+      "ref": "A",
+      "alt": "A"
+    },
+    {
+      "position": 9378,
+      "ref": "T",
+      "alt": "A"
+    },
+    {
+      "position": 9541,
+      "ref": "T",
+      "alt": "T"
+    },
+    {
+      "position": 9967,
+      "ref": "T",
+      "alt": "A"
+    },
+    {
+      "position": 10035,
+      "ref": "T",
+      "alt": "C"
+    },
+    {
+      "position": 10239,
+      "ref": "A",
+      "alt": "C"
+    },
+    {
+      "position": 10820,
+      "ref": "C",
+      "alt": "A"
+    },
+    {
+      "position": 11723,
+      "ref": "A",
+      "alt": "T"
+    },
+    {
+      "position": 12502,
+      "ref": "T",
+      "alt": "A"
+    },
+    {
+      "position": 12851,
+      "ref": "T",
+      "alt": "A"
+    },
+    {
+      "position": 13781,
+      "ref": "T",
+      "alt": "G"
+    },
+    {
+      "position": 15044,
+      "ref": "C",
+      "alt": "A"
+    },
+    {
+      "position": 15302,
+      "ref": "C",
+      "alt": "G"
+    },
+    {
+      "position": 15925,
+      "ref": "C",
+      "alt": "G"
+    },
+    {
+      "position": 16130,
+      "ref": "G",
+      "alt": "A"
+    },
+    {
+      "position": 16322,
+      "ref": "A",
+      "alt": "C"
+    },
+    {
+      "position": 16393,
+      "ref": "C",
+      "alt": "A"
+    }
+  ],
+  "align_positions": [
+    2485,
+    6735,
+    9541
+  ],
+  "expected_amp_positions": [
+    250,
+    410,
+    1721,
+    2354,
+    9378,
+    9967,
+    10035,
+    10239,
+    10820,
+    11723,
+    12502,
+    12851,
+    13781,
+    15044,
+    15302,
+    15925,
+    16130,
+    16322,
+    16393
+  ],
+  "missing_positions": [
+    73,
+    263,
+    1719,
+    10398
+  ],
+  "private_positions": [
+    410,
+    1721,
+    2354,
+    2485,
+    6735,
+    9378,
+    9541,
+    9967,
+    10035,
+    10239,
+    10820,
+    11723,
+    12502,
+    12851,
+    13781,
+    15044,
+    15302,
+    15925,
+    16130,
+    16322,
+    16393
+  ],
+  "qc_messages": [
+    {
+      "type": "error",
+      "message": "The sample misses 0.67 % of the exepected polymorphisms.  (QUAL)"
+    },
+    {
+      "type": "error",
+      "message": "The sample contains 3 variants according the rCRS: 2485T\t6735A\t9541T\t (ALIGN)"
+    },
+    {
+      "type": "warning",
+      "message": "The sample contains 18 global private mutation(s) that are not known by Phylotree (QUAL)"
+    },
+    {
+      "type": "warning",
+      "message": "The detected haplogroup quality 0.65 is below 0.9. (QUAL)"
+    }
+  ],
+  "amp_csv_positions": [
+    250,
+    410,
+    1721,
+    2354,
+    9378,
+    9967,
+    10035,
+    10239,
+    10820,
+    11723,
+    12502,
+    12851,
+    13781,
+    15044,
+    15302,
+    15925,
+    16130,
+    16322,
+    16393
+  ],
+  "amp_csv_rows": 19
+}
