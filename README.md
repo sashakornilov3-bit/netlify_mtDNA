@@ -1,10 +1,5 @@
 # netlify_mtDNA
 
-##README
-##========================
-##mtDNA Psychiatry Dashboard Automation
-##========================
-
 1. Назначение проекта
 ------------------------
 
